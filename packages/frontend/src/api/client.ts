@@ -3,7 +3,7 @@ import type {
   SearchResponse, HeatmapEntry, CurrentUser,
 } from '../types'
 
-const BASE = '/api'
+const BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : '/api'
 
 async function get<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE}${path}`, { credentials: 'include' })

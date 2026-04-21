@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ja"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface-variant": "#414750",
+                        "inverse-surface": "#2f3033",
+                        "on-tertiary-fixed-variant": "#523f5f",
+                        "on-surface": "#1a1c1e",
+                        "tertiary-fixed": "#f3daff",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-container": "#0061a4",
+                        "surface-container": "#eeedf0",
+                        "secondary-fixed": "#d7e3f8",
+                        "on-primary-fixed-variant": "#00497d",
+                        "surface-bright": "#faf9fc",
+                        "on-primary": "#ffffff",
+                        "surface-container-low": "#f4f3f6",
+                        "inverse-primary": "#9fcaff",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#0061a4",
+                        "secondary-container": "#d7e3f8",
+                        "on-tertiary-fixed": "#251431",
+                        "secondary": "#535f70",
+                        "tertiary": "#52405f",
+                        "outline-variant": "#c1c7d2",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-container": "#e9d0f7",
+                        "tertiary-container": "#6b5778",
+                        "on-secondary-fixed": "#101c2b",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed-dim": "#d6bee4",
+                        "outline": "#717782",
+                        "surface-container-high": "#e8e8eb",
+                        "on-primary-fixed": "#001d36",
+                        "on-primary-container": "#c0dbff",
+                        "background": "#faf9fc",
+                        "on-secondary-container": "#596576",
+                        "primary-fixed": "#d1e4ff",
+                        "surface-variant": "#e3e2e5",
+                        "surface": "#faf9fc",
+                        "primary-fixed-dim": "#9fcaff",
+                        "inverse-on-surface": "#f1f0f3",
+                        "error": "#ba1a1a",
+                        "surface-dim": "#dadadc",
+                        "secondary-fixed-dim": "#bbc7db",
+                        "on-error": "#ffffff",
+                        "surface-container-highest": "#e3e2e5",
+                        "on-background": "#1a1c1e",
+                        "on-secondary-fixed-variant": "#3c4858",
+                        "primary": "#00497d",
+                        "error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "8px",
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "xl": "32px",
+                        "md": "16px",
+                        "lg": "24px",
+                        "container-max": "1200px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "title-lg": ["Noto Sans JP"],
+                        "title-md": ["Noto Sans JP"],
+                        "headline-sm": ["Noto Sans JP"],
+                        "label-lg": ["Noto Sans JP"],
+                        "display-md": ["Noto Sans JP"],
+                        "body-md": ["Noto Sans JP"],
+                        "label-sm": ["Noto Sans JP"],
+                        "body-lg": ["Noto Sans JP"]
+                    },
+                    "fontSize": {
+                        "title-lg": ["22px", {"lineHeight": "28px", "fontWeight": "500"}],
+                        "title-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0.15px", "fontWeight": "500"}],
+                        "headline-sm": ["24px", {"lineHeight": "32px", "fontWeight": "400"}],
+                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500"}],
+                        "display-md": ["45px", {"lineHeight": "52px", "fontWeight": "400"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400"}],
+                        "label-sm": ["11px", {"lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .heatmap-cell {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+        }
+        .code-syntax-keyword { color: #569cd6; }
+        .code-syntax-string { color: #ce9178; }
+        .code-syntax-comment { color: #6a9955; }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased overflow-hidden flex h-screen">
+<!-- SideNavBar -->
+<aside class="hidden md:flex flex-col h-full p-2 gap-1 bg-slate-50 border-r border-slate-200 w-64 shrink-0 font-['Noto_Sans_JP'] text-xs tracking-tight">
+<div class="px-2 py-4 mb-2">
+<h1 class="text-xl font-black text-blue-900 cursor-pointer">ひまプロアーカイブ</h1>
+<p class="text-slate-500">エンジニアリングチーム</p>
+</div>
+<nav class="flex-1 flex flex-col gap-1 overflow-y-auto">
+<!-- Search -->
+<div class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 transition-all duration-150 ease-in-out cursor-pointer">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+<span class="font-medium">検索</span>
+</div>
+<!-- Threads -->
+<div class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 transition-all duration-150 ease-in-out cursor-pointer">
+<span class="material-symbols-outlined" data-icon="forum">forum</span>
+<span class="font-medium">スレッド</span>
+</div>
+<!-- Channels -->
+<div class="flex flex-col mt-4">
+<div class="px-3 py-1 flex items-center justify-between text-slate-500 mb-1">
+<span class="uppercase tracking-widest font-bold text-[10px]">チャンネル</span>
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-1.5 bg-blue-100/50 text-blue-700 font-semibold rounded-md transition-all duration-150 ease-in-out cursor-pointer">
+<span class="material-symbols-outlined text-sm" data-icon="tag">tag</span>
+<span class="truncate">全般（general）</span>
+<div class="ml-auto w-2 h-2 rounded-full bg-blue-600"></div>
+</div>
+<div class="flex items-center gap-3 px-3 py-1.5 text-slate-600 hover:bg-slate-200/50 rounded-md cursor-pointer">
+<span class="material-symbols-outlined text-sm" data-icon="tag">tag</span>
+<span class="truncate">開発・運用</span>
+<span class="ml-auto text-[10px] bg-slate-200 px-1.5 py-0.5 rounded-full text-slate-700">12</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-1.5 text-slate-600 hover:bg-slate-200/50 rounded-md cursor-pointer">
+<span class="material-symbols-outlined text-sm" data-icon="tag">tag</span>
+<span class="truncate">リリースログ</span>
+</div>
+</div>
+<div class="mt-4 flex items-center gap-3 px-3 py-2 text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 transition-all duration-150 ease-in-out cursor-pointer">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+<span class="font-medium">アクティビティ</span>
+</div>
+</nav>
+<div class="mt-auto pt-4 border-t border-slate-200">
+<button class="w-full bg-primary text-white py-2 rounded-md font-bold mb-4 hover:opacity-90 transition-opacity">ログを書き出す</button>
+<div class="flex items-center gap-3 px-2 py-3 hover:bg-slate-200/50 rounded-md cursor-pointer">
+<div class="w-8 h-8 rounded-full overflow-hidden bg-slate-300">
+<img class="w-full h-full object-cover" data-alt="Professional headshot of a male engineer in a clean office environment with soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAO5lz9zjvgjBAFqfDH0AR9CK8LadQFnxsyReHROAFbf_38_KCdVyzq_joJbxqVMGoAz7qy8tyoGCruVtwzSsQRgtdM7Gb17-XfPz4DuswCwHgyVG2T-RrZXT0EkAP-atodMhsEqRTguoNGOIp4xkMb-4VlFB0fy-cUQnSJGEfSk91Gu6135JMimNS-ysyf5QfDkXooCw5HMXtMJsOqJuFNkZ5iXdmr6hsLkTBPbGLqqoWDCjU6-ccE5A0DJA8JDHAwhIibSASBPfE"/>
+</div>
+<div class="flex flex-col">
+<span class="font-bold text-slate-900">田中 茂樹</span>
+<span class="text-[10px] text-slate-500">管理者</span>
+</div>
+<span class="material-symbols-outlined ml-auto text-slate-400" data-icon="more_vert">more_vert</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-w-0 bg-white">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-50 flex justify-between items-center w-full px-4 h-12 bg-white border-b border-slate-200 font-['Noto_Sans_JP'] text-xs antialiased">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined md:hidden" data-icon="menu">menu</span>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-slate-400" data-icon="tag">tag</span>
+<span class="text-lg font-bold text-blue-800">全般</span>
+</div>
+</div>
+<div class="flex-1 max-w-xl mx-8">
+<div class="relative group">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-slate-400 text-sm" data-icon="search">search</span>
+</span>
+<input class="block w-full pl-10 pr-3 py-1.5 bg-slate-100 border-none rounded-md text-sm focus:ring-2 focus:ring-blue-500 transition-all" placeholder="アーカイブを検索..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-slate-600 hover:bg-slate-100 p-1.5 rounded cursor-pointer" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined text-slate-600 hover:bg-slate-100 p-1.5 rounded cursor-pointer" data-icon="help">help</span>
+<span class="material-symbols-outlined text-slate-600 hover:bg-slate-100 p-1.5 rounded cursor-pointer" data-icon="settings">settings</span>
+</div>
+</header>
+<div class="flex-1 overflow-y-auto">
+<!-- Content Header / Stats -->
+<section class="p-lg grid grid-cols-1 xl:grid-cols-3 gap-md">
+<!-- Activity Heatmap Container -->
+<div class="xl:col-span-2 bg-surface-container-low p-md rounded-xl border border-outline-variant relative">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-title-md font-title-md text-on-surface">活動ヒートマップ</h3>
+<div class="flex flex-col items-end gap-1">
+<div class="flex items-center gap-2 text-[10px] text-on-surface-variant">
+<span>少</span>
+<div class="flex gap-[2px]">
+<div class="heatmap-cell" style="background-color: #EBEDF0;"></div>
+<div class="heatmap-cell" style="background-color: #9BE9A8;"></div>
+<div class="heatmap-cell" style="background-color: #40C463;"></div>
+<div class="heatmap-cell" style="background-color: #30A14E;"></div>
+<div class="heatmap-cell" style="background-color: #216E39;"></div>
+</div>
+<span>多</span>
+</div>
+<span class="text-[10px] text-on-surface-variant">集計期間: 2023年1月 〜 2023年12月</span>
+</div>
+</div>
+<div class="flex flex-wrap gap-[3px] relative">
+<!-- Simulated Heatmap Grid -->
+<script>
+                        const colors = ['#EBEDF0', '#9BE9A8', '#40C463', '#30A14E', '#216E39'];
+                        for(let i=0; i<154; i++) {
+                            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                            const isTooltipTarget = i === 42;
+                            if (isTooltipTarget) {
+                                document.write(`
+                                    <div class="relative group cursor-pointer">
+                                        <div class="heatmap-cell" style="background-color: #30A14E;"></div>
+                                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-inverse-surface text-inverse-on-surface text-[10px] rounded whitespace-nowrap z-10 shadow-lg">
+                                            2023年10月24日: 42メッセージ
+                                            <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-inverse-surface"></div>
+                                        </div>
+                                    </div>
+                                `);
+                            } else {
+                                document.write(`<div class="heatmap-cell" style="background-color: ${randomColor};"></div>`);
+                            }
+                        }
+                    </script>
+</div>
+</div>
+<!-- Bento Style Stat Card -->
+<div class="bg-primary-container text-on-primary-container p-md rounded-xl flex flex-col justify-between">
+<div>
+<p class="text-label-sm uppercase tracking-widest opacity-80">週間のスレッド数</p>
+<p class="text-display-md font-bold leading-none mt-2">1,284</p>
+</div>
+<div class="flex items-center gap-2 text-label-lg">
+<span class="material-symbols-outlined" data-icon="trending_up">trending_up</span>
+<span>先週比 +14.2%</span>
+</div>
+</div>
+</section>
+<!-- Message Timeline -->
+<section class="px-lg pb-xl max-w-4xl mx-auto">
+<div class="flex items-center gap-4 my-8">
+<div class="flex-1 h-px bg-outline-variant"></div>
+<span class="text-label-md text-outline font-medium px-4">2023年10月24日</span>
+<div class="flex-1 h-px bg-outline-variant"></div>
+</div>
+<div class="flex flex-col gap-md">
+<!-- Message Group 1 -->
+<div class="flex gap-md group">
+<div class="shrink-0 w-10 h-10 rounded bg-slate-200 overflow-hidden mt-1">
+<img class="w-full h-full object-cover" data-alt="Portrait of a male developer with glasses looking directly at the camera in a modern minimalist workspace" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpUSzCaAhXjn7aoYH77z6AmNpIfNveE6F1W08AvQW1HUmrtrGWh2GvvzO-BkpdL3owyp4kEhebtUAqm8NjlzTTQ-HhVz6Z9dgMb1EKrUxwd6l7s8720pb_goTLD2RInRJZZnZe6XDjo46DO9BNcNxew2BaKFCTUHEKM318TuSyBotq1HPjJd2SoBC89ykQOHm3Uuab6jH6Wa0NQAoXLdUhOchSdpdByeFh3s42Q7BGLh2goSDp_NMWbBmhkgeEZ0n489QyW1Fww3o"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-baseline gap-2 mb-xs">
+<span class="font-bold text-on-surface hover:underline cursor-pointer">佐藤 健太</span>
+<span class="text-label-sm text-outline">3日前</span>
+</div>
+<div class="text-body-md text-on-surface-variant leading-relaxed">
+                            明日のリリースに向けたマージリクエストを作成しました。
+                            以下のコマンドで最新ブランチをチェックアウトして、ローカルでテストをお願いします。
+                        </div>
+<!-- Code Block -->
+<div class="mt-sm rounded-lg bg-[#1e1e1e] p-md font-mono text-sm border border-slate-800 overflow-x-auto">
+<div class="flex gap-4">
+<span class="text-slate-600 select-none w-4 text-right">1</span>
+<code class="text-slate-300"><span class="code-syntax-keyword">git</span> checkout main</code>
+</div>
+<div class="flex gap-4">
+<span class="text-slate-600 select-none w-4 text-right">2</span>
+<code class="text-slate-300"><span class="code-syntax-keyword">git</span> pull origin main</code>
+</div>
+</div>
+<!-- Reactions -->
+<div class="flex flex-wrap gap-xs mt-sm">
+<button class="flex items-center gap-1.5 px-2 py-0.5 bg-secondary-container rounded-full text-xs hover:bg-outline-variant transition-colors">
+<span>👍</span>
+<span class="font-bold text-on-secondary-container">5</span>
+</button>
+<button class="flex items-center gap-1.5 px-2 py-0.5 bg-surface-container-high border border-outline-variant rounded-full text-xs hover:bg-outline-variant transition-colors">
+<span>🚀</span>
+<span class="font-bold text-on-surface-variant">3</span>
+</button>
+<button class="w-8 h-6 flex items-center justify-center bg-surface-container-high border border-outline-variant rounded-full hover:bg-outline-variant transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="add_reaction">add_reaction</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Consecutive Message -->
+<div class="flex gap-md group -mt-xs">
+<div class="shrink-0 w-10 flex justify-center">
+<span class="hidden group-hover:block text-[10px] text-outline mt-1">14:22</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="text-body-md text-on-surface-variant leading-relaxed">
+                            あ、コンフリクトが発生した場合は `feature/api-update` を先にマージしてください。
+                        </div>
+</div>
+</div>
+<!-- Message Group 2 -->
+<div class="flex gap-md group mt-sm">
+<div class="shrink-0 w-10 h-10 rounded bg-slate-200 overflow-hidden mt-1">
+<img class="w-full h-full object-cover" data-alt="Friendly female software engineer smiling at the desk in a bright natural light environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYLeaXJ53Z8hBl2PXSrdlE_gu32iVtYD6pdYzFd21DkGvo4dFoGj_SrjhyZnVvtwMZ88zafL0Rf6QXzp4pkIzZtAnm8DLxvHCS1puYwSLkM_7WkV5jAIRvNdblb3yamVf998wv3LoJ3dpRuu0_e28pjsUbNhR1EP2tS05GdBmsmp874Ju1T3HL6ARt8xkx4PhC7AU_2swzL9HE2BpJ4ippwCc8tbsmUtkCVTDIm9EB_NdFLuVJrh2uXMzrAkPedJt1UzUqbbXj9pM"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-baseline gap-2 mb-xs">
+<span class="font-bold text-on-surface hover:underline cursor-pointer">高橋 真理子</span>
+<span class="text-label-sm text-outline">3日前</span>
+</div>
+<div class="text-body-md text-on-surface-variant leading-relaxed">
+<span class="text-blue-600 bg-blue-50 px-1 rounded">@佐藤 健太</span> 了解です。今からレビュー開始します。
+                            テストスイートの実行結果も添付しておきます。
+                        </div>
+<div class="mt-sm flex items-center gap-md border border-outline-variant p-sm rounded-lg hover:bg-surface-container-low cursor-pointer group">
+<span class="material-symbols-outlined text-error" data-icon="description">description</span>
+<div class="flex flex-col flex-1 overflow-hidden">
+<span class="text-sm font-medium truncate">test_report_20231024.pdf</span>
+<span class="text-xs text-outline">1.4 MB • PDFドキュメント</span>
+</div>
+<span class="material-symbols-outlined opacity-0 group-hover:opacity-100" data-icon="download">download</span>
+</div>
+<!-- Reactions -->
+<div class="flex flex-wrap gap-xs mt-sm">
+<button class="flex items-center gap-1.5 px-2 py-0.5 bg-surface-container-high border border-outline-variant rounded-full text-xs hover:bg-outline-variant transition-colors">
+<span>🙏</span>
+<span class="font-bold text-on-surface-variant">2</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- NavigationDrawer (Contextual Thread Details) -->
+<div class="fixed right-0 top-0 h-full w-[520px] border-l border-slate-200 bg-white shadow-2xl z-[60] flex flex-col backdrop-blur-sm bg-opacity-95 hidden lg:flex font-['Noto_Sans_JP']">
+<div class="flex items-center justify-between p-4 border-b border-slate-200">
+<h2 class="text-lg font-bold text-blue-800">スレッド詳細</h2>
+<button class="material-symbols-outlined text-slate-500 hover:bg-slate-100 p-1 rounded" data-icon="close">close</button>
+</div>
+<div class="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+<div class="bg-surface-container-low rounded-xl p-md">
+<p class="text-label-sm text-outline mb-2 uppercase tracking-widest">初期コンテキスト</p>
+<div class="flex gap-md">
+<div class="shrink-0 w-8 h-8 rounded bg-slate-200 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Professional profile photo of a senior male engineer with a focused expression" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDh29YLgFRVjU3TYNoWqrXqHcp98_0JZxQxHwcwkjvlQtrb0eHYV05dPs2sUka4gPctUmYNX11kpHqsh2bVlq9y_Zg8XodO_WKkOXizyTWMt7FzeeJuAriMIovpx_-C9wWOtCk1qBnT57sTsv1goufihuY-UFbGk_rhSh5Sg94yqOPdQxiqDqDtC3-CS89GiLaBeAZopv_DUHkLDRD-67jBelke1kB6Zjw49j8Z_5FJe0hHperV8zROxbKn5TdhKhhXPoKtDfE1ZPs"/>
+</div>
+<div>
+<div class="text-sm font-bold">田中 茂樹</div>
+<div class="text-xs text-on-surface-variant">API v3 のレート制限に関する不具合報告を受けました。ログの調査をお願いします。</div>
+</div>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex items-center gap-2">
+<span class="font-bold text-sm">返信</span>
+<span class="text-xs text-outline">24 件のメッセージ</span>
+</div>
+<!-- Reply item -->
+<div class="flex gap-3">
+<div class="w-6 h-6 rounded-full bg-slate-300 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Portrait of a young female developer smiling in a vibrant studio setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcyZm-IcdF_xrNxqaGEGyhfe8MEQFgb9dhggdYtnKYrcA5-a__R1-l8PLDsbVPg0bdk7qcXVmSzkjegW8EkBXfjUAa07nQEFYinw_4hMgRflywQx2g4McKXyajq11_0JI_mJRshsr79-CBBSvUggZPavrn9AJOa1B94xXSLyGr-BTPmYKldPnWXCn1u7CIh9icPaO1P7sAcvb0dP5V3MkBdmFYTv61SqoPSG31OSj3Nv2MowazDkAzQ3mEHTztR5Ke9sQxFF34H4k"/>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-2">
+<span class="text-xs font-bold">鈴木 香織</span>
+<span class="text-[10px] text-outline">12:05</span>
+</div>
+<p class="text-xs mt-0.5 text-on-surface-variant leading-relaxed">Datadogで確認したところ、503エラーが急増しています。</p>
+</div>
+</div>
+</div>
+</div>
+<div class="p-4 bg-slate-50 border-t border-slate-200">
+<div class="bg-white border border-outline-variant rounded-lg p-2 focus-within:ring-2 focus-within:ring-blue-500 flex flex-col">
+<textarea class="w-full border-none p-0 focus:ring-0 text-sm resize-none" placeholder="スレッドに返信する..." rows="3"></textarea>
+<div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-100">
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-sm text-slate-400 cursor-pointer hover:text-slate-600" data-icon="attachment">attachment</span>
+<span class="material-symbols-outlined text-sm text-slate-400 cursor-pointer hover:text-slate-600" data-icon="mood">mood</span>
+</div>
+<button class="bg-blue-700 text-white px-3 py-1 rounded text-xs font-bold hover:bg-blue-800">送信</button>
+</div>
+</div>
+</div>
+</div>
+</body></html>
