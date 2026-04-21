@@ -13,7 +13,6 @@ import { heatmapRoutes } from './routes/heatmap.js'
 import { userRoutes } from './routes/users.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-config({ path: path.resolve(__dirname, '../../../.env') })
 config({ path: path.resolve(__dirname, '../.env') })
 
 const server = Fastify({
