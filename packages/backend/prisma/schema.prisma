@@ -42,8 +42,9 @@ model Message {
   id           String  @id @default(cuid())
   slackTs      String  @map("slack_ts")
   channelId    String  @map("channel_id")
-  slackUserId  String? @map("slack_user_id") // Slack生のuser_id（バックフィル用）
+  slackUserId  String? @map("slack_user_id")
   userId       String? @map("user_id")
+  senderName   String? @map("sender_name") // Bot/アプリ名（userがいない場合）
   text         String
   threadTs     String? @map("thread_ts")
   replyCount   Int     @default(0) @map("reply_count")

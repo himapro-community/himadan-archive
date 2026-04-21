@@ -10,7 +10,7 @@ interface SearchQuery {
 }
 
 export const searchRoutes: FastifyPluginAsync = async (fastify) => {
-  fastify.get<{ Querystring: SearchQuery }>('/', async (request, reply) => {
+  fastify.get<{ Querystring: SearchQuery }>('/', { onRequest: [fastify.authenticate] }, async (request, reply) => {
     const { q, channelId, cursor, limit } = request.query
 
     if (!q || q.trim().length < 2) {
@@ -33,9 +33,11 @@ export const searchRoutes: FastifyPluginAsync = async (fastify) => {
         text: true,
         threadTs: true,
         replyCount: true,
+        senderName: true,
         channelId: true,
         channel: { select: { name: true } },
         user: { select: { slackUserId: true, displayName: true, avatarUrl: true } },
+        files: { select: { id: true, slackUrl: true, mimeType: true, name: true } },
       },
     })
 

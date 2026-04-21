@@ -9,6 +9,8 @@ export interface SlackMessage {
   ts: string
   user?: string
   bot_id?: string
+  username?: string
+  bot_profile?: { name?: string }
   text: string
   thread_ts?: string
   reply_count?: number

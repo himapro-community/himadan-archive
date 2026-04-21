@@ -6,7 +6,7 @@ interface HeatmapQuery {
 }
 
 export const heatmapRoutes: FastifyPluginAsync = async (fastify) => {
-  fastify.get<{ Querystring: HeatmapQuery }>('/', async (request) => {
+  fastify.get<{ Querystring: HeatmapQuery }>('/', { onRequest: [fastify.authenticate] }, async (request) => {
     const { channelId, months = '12' } = request.query
     const since = Math.floor(Date.now() / 1000) - Number(months) * 30 * 24 * 60 * 60
 

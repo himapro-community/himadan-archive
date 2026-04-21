@@ -50,15 +50,18 @@ async function upsertMessage(
       text: msg.text,
       replyCount: msg.reply_count ?? 0,
       slackUserId: msg.user ?? null,
+      senderName: msg.bot_profile?.name ?? msg.username ?? null,
       userId,
     },
     create: {
       channelId,
       slackTs: msg.ts,
       slackUserId: msg.user ?? null,
+      senderName: msg.bot_profile?.name ?? msg.username ?? null,
       userId,
       text: msg.text,
-      threadTs: msg.thread_ts ?? null,
+      // Slack sets thread_ts === ts on parent messages; only treat as reply when different
+      threadTs: msg.thread_ts && msg.thread_ts !== msg.ts ? msg.thread_ts : null,
       replyCount: msg.reply_count ?? 0,
     },
   })

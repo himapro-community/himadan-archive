@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev:backend": "pnpm --filter backend dev",
-    "dev:frontend": "pnpm --filter frontend dev",
+    "dev:backend": "lsof -ti:3001 | xargs kill -9 2>/dev/null; pnpm --filter backend dev",
+    "dev:frontend": "lsof -ti:5173 | xargs kill -9 2>/dev/null; pnpm --filter frontend dev",
     "build": "pnpm --filter backend build && pnpm --filter frontend build",
     "db:migrate": "pnpm --filter backend db:migrate",
     "db:studio": "pnpm --filter backend db:studio"

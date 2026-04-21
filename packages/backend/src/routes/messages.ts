@@ -8,6 +8,7 @@ const messageSelect = {
   text: true,
   threadTs: true,
   replyCount: true,
+  senderName: true,
   user: { select: { slackUserId: true, displayName: true, avatarUrl: true } },
   files: { select: { id: true, slackUrl: true, mimeType: true, name: true } },
 } as const
@@ -26,6 +27,7 @@ export const messageRoutes: FastifyPluginAsync = async (fastify) => {
   // チャンネルのメッセージ一覧（カーソルページネーション・昇順）
   fastify.get<{ Params: { channelId: string }; Querystring: MessagesQuery }>(
     '/channels/:channelId',
+    { onRequest: [fastify.authenticate] },
     async (request, reply) => {
       const { channelId } = request.params
       const { cursor, limit } = request.query
@@ -58,6 +60,7 @@ export const messageRoutes: FastifyPluginAsync = async (fastify) => {
   // スレッド返信取得
   fastify.get<{ Params: ThreadParams; Querystring: MessagesQuery }>(
     '/thread/:channelId/:ts',
+    { onRequest: [fastify.authenticate] },
     async (request, reply) => {
       const { channelId, ts } = request.params
       const { cursor, limit } = request.query

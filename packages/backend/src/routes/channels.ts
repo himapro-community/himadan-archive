@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify'
 
 export const channelRoutes: FastifyPluginAsync = async (fastify) => {
-  fastify.get('/', async () => {
+  fastify.get('/', { onRequest: [fastify.authenticate] }, async () => {
     const channels = await fastify.prisma.channel.findMany({
       where: { isArchived: false },
       orderBy: { name: 'asc' },
