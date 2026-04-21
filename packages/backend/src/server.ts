@@ -43,7 +43,7 @@ server.get('/api/health', async () => ({ status: 'ok' }))
 const PORT = Number(process.env.PORT ?? 3001)
 
 try {
-  await server.listen({ port: PORT, host: '::' })
+  await server.listen({ port: PORT, host: process.env.NODE_ENV === 'production' ? '0.0.0.0' : '::' })
 } catch (err) {
   server.log.error(err)
   process.exit(1)
