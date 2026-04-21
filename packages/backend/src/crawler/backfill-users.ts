@@ -5,7 +5,6 @@ import { PrismaClient } from '@prisma/client'
 import { fetchUserProfile } from './fetch-channel.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-config({ path: path.resolve(__dirname, '../../../../.env') })
 config({ path: path.resolve(__dirname, '../../.env') })
 
 const prisma = new PrismaClient()

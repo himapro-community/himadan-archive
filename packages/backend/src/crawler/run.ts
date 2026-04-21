@@ -6,10 +6,8 @@ import { getSlackClient } from './slack-client.js'
 import { fetchChannelMessages } from './fetch-channel.js'
 import { upsertChannel, saveMessages } from './save-to-db.js'
 
-// モノレポルートの .env を読み込む
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-config({ path: path.resolve(__dirname, '../../../../.env') })
-config({ path: path.resolve(__dirname, '../../.env') }) // backend/.env も読み込み（上書きなし）
+config({ path: path.resolve(__dirname, '../../.env') })
 
 // ---- CLI 引数パース ----
 const args = process.argv.slice(2)
