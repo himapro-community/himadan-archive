@@ -67,15 +67,22 @@ pnpm --filter backend crawler -- --channel general
 
 ### バックエンド（Fly.io）
 
+`packages/backend/` 配下の変更を `main` にプッシュすると **GitHub Actions が自動デプロイ**する。  
+→ `.github/workflows/deploy.yml`
+
+手動デプロイ：
+
 ```bash
 fly deploy --app himadan-archive
 ```
 
 ### フロントエンド（Vercel）
 
+GitHub との自動連携は未設定のため、手動デプロイが必要：
+
 ```bash
 cd packages/frontend
-vercel --prod --scope jumpei-kuratas-projects --yes
+vercel --prod
 ```
 
 ### 環境変数
@@ -93,11 +100,11 @@ vercel --prod --scope jumpei-kuratas-projects --yes
 | `FRONTEND_URL` | フロントエンドURL（CORS用） |
 | `API_URL` | バックエンドの公開URL |
 
-#### GitHub Secrets（リポジトリの Settings → Secrets）
+#### GitHub Secrets（リポジトリの Settings → Secrets and variables → Actions）
 
 | キー | 説明 |
 |------|------|
-| `FLY_API_TOKEN` | `fly tokens create deploy` で取得 |
+| `FLY_API_TOKEN` | `fly tokens create deploy` で取得（バックエンド自動デプロイに必要） |
 
 #### Vercel 環境変数
 
