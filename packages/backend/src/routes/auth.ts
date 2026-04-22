@@ -142,7 +142,11 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
         path: '/',
       })
 
-      return reply.redirect(frontendUrl)
+      // Vercel プロキシ経由では 302 の Set-Cookie が落ちることがあるため HTML リダイレクト
+      const safeUrl = frontendUrl.replace(/'/g, '%27')
+      return reply.type('text/html').send(
+        `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url='${safeUrl}'"/></head><body><script>location.replace('${safeUrl}')</script></body></html>`
+      )
     }
   )
 
