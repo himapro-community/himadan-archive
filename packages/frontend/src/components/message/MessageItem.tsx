@@ -1,4 +1,4 @@
-import { formatRelativeTime, channelColor, parseMessageText, resolveSlackText, linkifyText } from '../../utils/format'
+import { formatRelativeTime, channelColor, parseMessageText, resolveSlackText, formatSlackMarkdown, linkifyText } from '../../utils/format'
 import { useUserMap } from '../../hooks/useUserMap'
 import type { Message, SearchResult } from '../../types'
 
@@ -29,7 +29,9 @@ function MessageText({ text, query }: { text: string; query?: string }) {
             key={i}
             className="whitespace-pre-wrap break-words"
             dangerouslySetInnerHTML={{
-              __html: query ? highlightText(linkifyText(part.content), query) : linkifyText(part.content),
+              __html: query
+                ? highlightText(linkifyText(formatSlackMarkdown(part.content)), query)
+                : linkifyText(formatSlackMarkdown(part.content)),
             }}
           />
         )

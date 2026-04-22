@@ -68,6 +68,27 @@ export function resolveSlackText(text: string, userMap: Map<string, string>): st
     .replace(/<(https?:\/\/[^>]+)>/g, '$1')
 }
 
+// Slack mrkdwn のインライン書式を HTML に変換（コードブロック除く）
+export function formatSlackMarkdown(text: string): string {
+  return (
+    text
+      // HTML エスケープ（XSS防止）
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      // インラインコード（他の変換より先に処理）
+      .replace(/`([^`\n]+)`/g, '<code class="px-1 py-0.5 bg-slate-100 text-slate-800 rounded text-[0.85em] font-mono">$1</code>')
+      // 太字
+      .replace(/\*([^*\n]+)\*/g, '<strong>$1</strong>')
+      // 斜体
+      .replace(/_([^_\n]+)_/g, '<em>$1</em>')
+      // 取り消し線
+      .replace(/~([^~\n]+)~/g, '<del>$1</del>')
+      // 引用
+      .replace(/^&gt; ?(.*)$/gm, '<span class="border-l-4 border-slate-300 pl-2 text-slate-500 block">$1</span>')
+  )
+}
+
 // プレーンテキスト中のURLをクリッカブルなリンクに変換
 export function linkifyText(text: string): string {
   return text.replace(
