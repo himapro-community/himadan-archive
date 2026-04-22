@@ -40,7 +40,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
     reply.setCookie(STATE_COOKIE, state, {
       httpOnly: true,
       secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
+      sameSite: 'lax',
       maxAge: 60 * 10,
       path: '/',
     })
@@ -137,7 +137,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
       reply.setCookie(TOKEN_COOKIE, jwtToken, {
         httpOnly: true,
         secure: isProd,
-        sameSite: isProd ? 'none' : 'lax',
+        sameSite: 'lax',
         maxAge: TOKEN_MAX_AGE,
         path: '/',
       })

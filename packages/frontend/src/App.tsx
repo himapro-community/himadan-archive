@@ -143,11 +143,14 @@ export default function App() {
   useEffect(() => {
     api.auth
       .me()
-      .then((u) => {
+      .then(async (u) => {
         setUser(u)
-        return api.channels.list()
+        try {
+          setChannels(await api.channels.list())
+        } catch {
+          // channels fetch failed but user is still authenticated
+        }
       })
-      .then(setChannels)
       .catch(() => setUser(null))
   }, [])
 

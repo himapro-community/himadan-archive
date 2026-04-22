@@ -1,13 +1,45 @@
+import { useSearchParams } from 'react-router-dom'
+
 const SLACK_LOGIN_URL = import.meta.env.VITE_API_URL
   ? `${import.meta.env.VITE_API_URL}/api/auth/slack`
   : '/api/auth/slack'
 
+const ERROR_MESSAGES: Record<string, { title: string; detail: string }> = {
+  invalid_team_for_non_distributed_app: {
+    title: '別のワークスペースでログイン中です',
+    detail: 'ブラウザが別のSlackワークスペースにログインした状態で認証しようとしました。一度Slackからサインアウトするか、ひまプロ談話室のワークスペース（w1746244537-yrh610937.slack.com）にブラウザでアクセスしてからお試しください。',
+  },
+  not_approved: {
+    title: 'アクセス権限がありません',
+    detail: 'ひまプロ談話室のメンバーのみアクセスできます。',
+  },
+  invalid_state: {
+    title: '認証セッションが切れました',
+    detail: 'もう一度お試しください。',
+  },
+  access_denied: {
+    title: 'アクセスが拒否されました',
+    detail: 'Slack認証をキャンセルしました。もう一度お試しください。',
+  },
+}
+
 export function LoginPage() {
+  const [searchParams] = useSearchParams()
+  const errorCode = searchParams.get('error')
+  const errorInfo = errorCode ? (ERROR_MESSAGES[errorCode] ?? { title: '認証エラーが発生しました', detail: `エラーコード: ${errorCode}` }) : null
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="bg-white rounded-2xl shadow-lg p-10 w-full max-w-sm text-center">
         <h1 className="text-2xl font-black text-blue-900 mb-1">ひまプロアーカイブ</h1>
         <p className="text-sm text-on-surface-variant mb-8">ひまプロ談話室メンバー専用</p>
+
+        {errorInfo && (
+          <div className="mb-6 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-left">
+            <p className="text-sm font-bold text-red-700">{errorInfo.title}</p>
+            <p className="mt-1 text-xs text-red-600 leading-relaxed">{errorInfo.detail}</p>
+          </div>
+        )}
 
         <a
           href={SLACK_LOGIN_URL}

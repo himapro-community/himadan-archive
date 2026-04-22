@@ -1,6 +1,7 @@
 {
   "alias": ["himadan-archive.vercel.app"],
   "rewrites": [
+    { "source": "/api/:path*", "destination": "https://himadan-archive.fly.dev/api/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
