@@ -39,9 +39,18 @@ export function channelColor(name: string): string {
   return 'bg-surface-container text-on-surface-variant'
 }
 
+import { get as getEmoji } from 'node-emoji'
+
+function convertEmoji(text: string): string {
+  return text.replace(/:([a-z0-9_+-]+):/g, (match, name) => {
+    const emoji = getEmoji(name)
+    return emoji ?? match
+  })
+}
+
 // Slack mrkdwn のメンション・特殊記法を解決
 export function resolveSlackText(text: string, userMap: Map<string, string>): string {
-  return text
+  return convertEmoji(text)
     // <@USERID> or <@USERID|label>
     .replace(/<@([A-Z0-9]+)(?:\|([^>]+))?>/g, (_, uid, label) => {
       const name = label || userMap.get(uid) || uid
