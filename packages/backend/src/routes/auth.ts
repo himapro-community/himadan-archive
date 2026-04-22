@@ -1,30 +1,30 @@
 import crypto from 'node:crypto'
 import type { FastifyPluginAsync } from 'fastify'
 
-const SLACK_AUTHORIZE_URL = 'https://slack.com/openid/connect/authorize'
-const SLACK_TOKEN_URL = 'https://slack.com/api/openid.connect.token'
-const SCOPES = 'openid profile'
+const SLACK_AUTHORIZE_URL = 'https://slack.com/oauth/v2/authorize'
+const SLACK_TOKEN_URL = 'https://slack.com/api/oauth.v2.access'
+const SLACK_USER_INFO_URL = 'https://slack.com/api/openid.connect.userInfo'
+const USER_SCOPES = 'openid,profile'
 const STATE_COOKIE = 'oauth_state'
 const TOKEN_COOKIE = 'token'
 const TOKEN_MAX_AGE = 60 * 60 * 24 * 7 // 7日
 
-interface SlackTokenResponse {
+interface SlackOAuthV2Response {
   ok: boolean
-  id_token?: string
+  authed_user?: {
+    id: string
+    access_token: string
+  }
   error?: string
 }
 
-interface SlackIdTokenClaims {
-  sub: string // Slack user ID
+interface SlackUserInfo {
+  ok: boolean
+  sub: string
   name: string
   picture?: string
   'https://slack.com/team_id': string
   'https://slack.com/user_id': string
-}
-
-function decodeIdToken(idToken: string): SlackIdTokenClaims {
-  const [, payload] = idToken.split('.')
-  return JSON.parse(Buffer.from(payload, 'base64url').toString()) as SlackIdTokenClaims
 }
 
 export const authRoutes: FastifyPluginAsync = async (fastify) => {
@@ -49,7 +49,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
       client_id: process.env.SLACK_CLIENT_ID!,
       redirect_uri: redirectUri,
       response_type: 'code',
-      scope: SCOPES,
+      user_scope: USER_SCOPES,
       state,
       team: process.env.SLACK_TEAM_ID!,
     })
@@ -87,15 +87,23 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
         }),
       })
 
-      const tokenData = (await tokenRes.json()) as SlackTokenResponse
+      const tokenData = (await tokenRes.json()) as SlackOAuthV2Response
 
-      if (!tokenData.ok || !tokenData.id_token) {
+      if (!tokenData.ok || !tokenData.authed_user?.access_token) {
         return reply.redirect(`${frontendUrl}/login?error=token_exchange_failed`)
       }
 
-      const claims = decodeIdToken(tokenData.id_token)
-      const slackUserId = claims['https://slack.com/user_id'] || claims.sub
-      const teamId = claims['https://slack.com/team_id']
+      const userInfoRes = await fetch(SLACK_USER_INFO_URL, {
+        headers: { Authorization: `Bearer ${tokenData.authed_user.access_token}` },
+      })
+      const userInfo = (await userInfoRes.json()) as SlackUserInfo
+
+      if (!userInfo.ok) {
+        return reply.redirect(`${frontendUrl}/login?error=userinfo_failed`)
+      }
+
+      const slackUserId = userInfo['https://slack.com/user_id'] || userInfo.sub
+      const teamId = userInfo['https://slack.com/team_id']
 
       // team_id チェック: ひまプロ談話室のみ許可
       const isApproved = teamId === process.env.SLACK_TEAM_ID
@@ -104,16 +112,16 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
       const user = await fastify.prisma.user.upsert({
         where: { slackUserId },
         update: {
-          displayName: claims.name,
-          avatarUrl: claims.picture ?? null,
+          displayName: userInfo.name,
+          avatarUrl: userInfo.picture ?? null,
           isApproved,
         },
         create: {
           slackUserId,
           teamId,
-          displayName: claims.name,
-          realName: claims.name,
-          avatarUrl: claims.picture ?? null,
+          displayName: userInfo.name,
+          realName: userInfo.name,
+          avatarUrl: userInfo.picture ?? null,
           isApproved,
         },
       })
