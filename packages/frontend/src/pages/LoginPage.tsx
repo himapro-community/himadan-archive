@@ -1,3 +1,7 @@
+const SLACK_LOGIN_URL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api/auth/slack`
+  : '/api/auth/slack'
+
 export function LoginPage() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
@@ -6,7 +10,7 @@ export function LoginPage() {
         <p className="text-sm text-on-surface-variant mb-8">ひまプロ談話室メンバー専用</p>
 
         <a
-          href="/api/auth/slack"
+          href={SLACK_LOGIN_URL}
           className="flex items-center justify-center gap-3 w-full py-3 bg-primary text-on-primary rounded-xl font-bold text-sm hover:opacity-90 transition-opacity"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
