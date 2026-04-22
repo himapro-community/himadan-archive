@@ -37,7 +37,7 @@ export function ThreadDrawer({ message, channelId, channelName, onClose }: Props
 
       {/* ドロワー */}
       <div
-        className={`fixed right-0 top-0 h-full w-[520px] bg-white border-l border-slate-200 shadow-2xl z-50 flex flex-col transition-transform duration-300 ${
+        className={`fixed right-0 top-0 h-full w-full sm:w-[520px] bg-white sm:border-l border-slate-200 shadow-2xl z-50 flex flex-col transition-transform duration-300 ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >

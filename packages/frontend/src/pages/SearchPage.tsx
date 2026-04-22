@@ -36,7 +36,7 @@ export function SearchPage() {
 
   return (
     <div className="flex-1 overflow-y-auto bg-surface-bright">
-      <div className="max-w-3xl mx-auto py-6 px-6">
+      <div className="max-w-3xl mx-auto py-6 px-4 sm:px-6">
         {/* 検索バー */}
         <div className="relative mb-6">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">
@@ -52,7 +52,6 @@ export function SearchPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="キーワードを入力..."
-            autoFocus
             className="w-full pl-10 pr-10 py-2.5 bg-surface-container rounded-xl border border-outline-variant text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
