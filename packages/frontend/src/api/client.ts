@@ -5,10 +5,13 @@ import type {
 
 const BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : '/api'
 
+let authRedirectPending = false
+
 async function get<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE}${path}`, { credentials: 'include' })
   if (res.status === 401) {
-    if (!window.location.pathname.startsWith('/login')) {
+    if (!authRedirectPending && !window.location.pathname.startsWith('/login')) {
+      authRedirectPending = true
       window.location.href = '/login'
     }
     throw new Error('Unauthorized')

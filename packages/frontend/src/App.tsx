@@ -19,8 +19,11 @@ function Sidebar({
   onClose: () => void
 }) {
   const handleLogout = async () => {
-    await api.auth.logout()
-    window.location.href = '/login'
+    try {
+      await api.auth.logout()
+    } finally {
+      window.location.href = '/login'
+    }
   }
 
   return (
