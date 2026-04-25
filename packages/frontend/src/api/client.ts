@@ -29,8 +29,13 @@ export const api = {
     list: () => get<Channel[]>('/channels'),
   },
   messages: {
-    list: (channelId: string, cursor?: string) =>
-      get<MessagesResponse>(`/messages/channels/${channelId}${cursor ? `?cursor=${cursor}` : ''}`),
+    list: (channelId: string, cursor?: string, order: 'asc' | 'desc' = 'asc') => {
+      const params = new URLSearchParams()
+      if (cursor) params.set('cursor', cursor)
+      if (order !== 'asc') params.set('order', order)
+      const qs = params.toString()
+      return get<MessagesResponse>(`/messages/channels/${channelId}${qs ? `?${qs}` : ''}`)
+    },
     thread: (channelId: string, ts: string, cursor?: string) =>
       get<ThreadResponse>(`/messages/thread/${channelId}/${ts}${cursor ? `?cursor=${cursor}` : ''}`),
   },

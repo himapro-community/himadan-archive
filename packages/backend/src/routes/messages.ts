@@ -16,6 +16,7 @@ const messageSelect = {
 interface MessagesQuery {
   cursor?: string
   limit?: string
+  order?: 'asc' | 'desc'
 }
 
 interface ThreadParams {
@@ -30,8 +31,9 @@ export const messageRoutes: FastifyPluginAsync = async (fastify) => {
     { onRequest: [fastify.authenticate] },
     async (request, reply) => {
       const { channelId } = request.params
-      const { cursor, limit } = request.query
+      const { cursor, limit, order = 'asc' } = request.query
       const take = Math.min(Number(limit ?? MESSAGE_LIMIT), 200)
+      const dir = order === 'desc' ? 'desc' : 'asc'
 
       const channel = await fastify.prisma.channel.findUnique({ where: { id: channelId } })
       if (!channel) return reply.status(404).send({ error: 'Channel not found' })
@@ -39,11 +41,11 @@ export const messageRoutes: FastifyPluginAsync = async (fastify) => {
       const messages = await fastify.prisma.message.findMany({
         where: {
           channelId,
-          threadTs: null, // 親メッセージのみ（返信は thread エンドポイントで）
-          ...(cursor ? { slackTs: { gt: cursor } } : {}),
+          threadTs: null,
+          ...(cursor ? { slackTs: { [dir === 'asc' ? 'gt' : 'lt']: cursor } } : {}),
         },
-        orderBy: { slackTs: 'asc' },
-        take: take + 1, // +1 で次ページ有無を判定
+        orderBy: { slackTs: dir },
+        take: take + 1,
         select: messageSelect,
       })
 

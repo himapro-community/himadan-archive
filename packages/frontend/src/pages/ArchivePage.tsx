@@ -19,22 +19,23 @@ export function ArchivePage({ channels }: Props) {
   const [nextCursor, setNextCursor] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null)
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
   const currentChannel = channels.find((c) => c.id === channelId)
 
   const fetchMessages = useCallback(
-    async (cursor?: string) => {
+    async (cursor?: string, order: 'asc' | 'desc' = sortOrder) => {
       if (!channelId || isLoading) return
       setIsLoading(true)
       try {
-        const res = await api.messages.list(channelId, cursor)
+        const res = await api.messages.list(channelId, cursor, order)
         setMessages((prev) => (cursor ? [...prev, ...res.items] : res.items))
         setNextCursor(res.nextCursor)
       } finally {
         setIsLoading(false)
       }
     },
-    [channelId]
+    [channelId, sortOrder]
   )
 
   useEffect(() => {
@@ -45,8 +46,8 @@ export function ArchivePage({ channels }: Props) {
     setMessages([])
     setNextCursor(null)
     setSelectedMessage(null)
-    fetchMessages()
-  }, [channelId, channels])
+    fetchMessages(undefined, sortOrder)
+  }, [channelId, channels, sortOrder])
 
   return (
     <div className="flex-1 overflow-y-auto bg-surface-bright relative">
@@ -58,6 +59,18 @@ export function ArchivePage({ channels }: Props) {
             <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${channelColor(currentChannel.name)}`}>
               {currentChannel.messageCount.toLocaleString()}件
             </span>
+            <div className="ml-auto">
+              <button
+                onClick={() => setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'))}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-full text-label-sm text-on-surface-variant border border-outline-variant hover:bg-surface-container transition-colors"
+                title={sortOrder === 'asc' ? '古い順（クリックで新しい順）' : '新しい順（クリックで古い順）'}
+              >
+                <span className="material-symbols-outlined text-base">
+                  {sortOrder === 'asc' ? 'arrow_upward' : 'arrow_downward'}
+                </span>
+                {sortOrder === 'asc' ? '古い順' : '新しい順'}
+              </button>
+            </div>
           </div>
         )}
 
