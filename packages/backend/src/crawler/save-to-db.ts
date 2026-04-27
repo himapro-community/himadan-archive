@@ -95,9 +95,10 @@ export async function saveMessages(
   channelId: string,
   messages: SlackMessage[],
   slackChannelId: string
-): Promise<void> {
+): Promise<Set<string>> {
   let saved = 0
   let threadsProcessed = 0
+  const fetchedThreadTs = new Set<string>()
 
   for (const msg of messages) {
     // bot_id のみで user がない場合はスキップ or null
@@ -116,6 +117,7 @@ export async function saveMessages(
         await upsertMessage(prisma, channelId, reply, replyUserId)
       }
 
+      fetchedThreadTs.add(msg.ts)
       threadsProcessed++
     }
 
@@ -125,4 +127,51 @@ export async function saveMessages(
   }
 
   console.log(`  [save] 完了: メッセージ ${saved} 件, スレッド ${threadsProcessed} 件`)
+  return fetchedThreadTs
+}
+
+export async function syncRecentThreadReplies(
+  prisma: PrismaClient,
+  channelId: string,
+  slackChannelId: string,
+  skipTs?: Set<string>
+): Promise<void> {
+  // Slack無料プランはAPIで取得できるのが直近90日分のみ
+  const ninetyDaysAgo = String(Math.floor((Date.now() - 90 * 24 * 60 * 60 * 1000) / 1000))
+  const thirtyDaysAgo = String(Math.floor((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000))
+
+  const parents = await prisma.message.findMany({
+    where: {
+      channelId,
+      threadTs: null,
+      slackTs: { gte: ninetyDaysAgo },
+      OR: [
+        { replyCount: { gt: 0 } },
+        { slackTs: { gte: thirtyDaysAgo } },
+      ],
+    },
+    select: { slackTs: true },
+  })
+
+  const targets = skipTs ? parents.filter((p) => !skipTs.has(p.slackTs)) : parents
+
+  if (targets.length === 0) return
+
+  console.log(`  [thread-sync] ${targets.length} 件のスレッドを再同期中...`)
+
+  for (const parent of targets) {
+    const replies = await fetchThreadReplies(slackChannelId, parent.slackTs)
+    for (const reply of replies) {
+      const replyUserId = reply.user ? await upsertUser(prisma, reply.user) : null
+      await upsertMessage(prisma, channelId, reply, replyUserId)
+    }
+    if (replies.length > 0) {
+      await prisma.message.update({
+        where: { channelId_slackTs: { channelId, slackTs: parent.slackTs } },
+        data: { replyCount: replies.length },
+      })
+    }
+  }
+
+  console.log(`  [thread-sync] 完了: ${targets.length} スレッド再同期`)
 }

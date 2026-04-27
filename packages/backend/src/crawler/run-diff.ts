@@ -4,7 +4,7 @@ import { config } from 'dotenv'
 import { PrismaClient } from '@prisma/client'
 import { getSlackClient, sleep } from './slack-client.js'
 import { fetchChannelMessages } from './fetch-channel.js'
-import { upsertChannel, saveMessages } from './save-to-db.js'
+import { upsertChannel, saveMessages, syncRecentThreadReplies } from './save-to-db.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 config({ path: path.resolve(__dirname, '../../.env') })
@@ -57,24 +57,32 @@ try {
 
     const messages = await fetchChannelMessages(channel.id, { oldest })
 
-    if (messages.length === 0) continue
+    let dbChannelId = dbChannel?.id
+    let fetchedThreadTs = new Set<string>()
 
-    console.log(`  #${channel.name}: ${messages.length} 件の新着`)
+    if (messages.length > 0) {
+      console.log(`  #${channel.name}: ${messages.length} 件の新着`)
 
-    try {
-      await client.conversations.join({ channel: channel.id })
-      await sleep(1200)
-    } catch (err: any) {
-      const code = err?.data?.error
-      if (code !== 'already_in_channel' && code !== 'method_not_supported_for_channel_type') {
-        console.warn(`  [skip] join 失敗 (${code})`)
-        continue
+      try {
+        await client.conversations.join({ channel: channel.id })
+        await sleep(1200)
+      } catch (err: any) {
+        const code = err?.data?.error
+        if (code !== 'already_in_channel' && code !== 'method_not_supported_for_channel_type') {
+          console.warn(`  [skip] join 失敗 (${code})`)
+          continue
+        }
       }
+
+      dbChannelId = await upsertChannel(prisma, channel.id, channel.name)
+      fetchedThreadTs = await saveMessages(prisma, dbChannelId, messages, channel.id)
+      totalNew += messages.length
     }
 
-    const dbChannelId = await upsertChannel(prisma, channel.id, channel.name)
-    await saveMessages(prisma, dbChannelId, messages, channel.id)
-    totalNew += messages.length
+    // 新着の有無にかかわらずスレッドの追加返信を再同期（saveMessagesで取得済みのものは除外）
+    if (dbChannelId) {
+      await syncRecentThreadReplies(prisma, dbChannelId, channel.id, fetchedThreadTs)
+    }
   }
 
   console.log(`[diff] 完了: 新着 ${totalNew} 件`)
