@@ -56,6 +56,18 @@ try {
       oldest = String(Math.floor((Date.now() - 90 * 24 * 60 * 60 * 1000) / 1000))
     }
 
+    // history / replies 呼び出し前に必ず join しておく (未参加だと not_in_channel)
+    try {
+      await client.conversations.join({ channel: channel.id })
+      await sleep(1200)
+    } catch (err: any) {
+      const code = err?.data?.error
+      if (code !== 'already_in_channel' && code !== 'method_not_supported_for_channel_type') {
+        console.warn(`  [skip] #${channel.name} join 失敗 (${code})`)
+        continue
+      }
+    }
+
     const messages = await fetchChannelMessages(channel.id, { oldest })
 
     let dbChannelId = dbChannel?.id
@@ -63,18 +75,6 @@ try {
 
     if (messages.length > 0) {
       console.log(`  #${channel.name}: ${messages.length} 件の新着`)
-
-      try {
-        await client.conversations.join({ channel: channel.id })
-        await sleep(1200)
-      } catch (err: any) {
-        const code = err?.data?.error
-        if (code !== 'already_in_channel' && code !== 'method_not_supported_for_channel_type') {
-          console.warn(`  [skip] join 失敗 (${code})`)
-          continue
-        }
-      }
-
       dbChannelId = await upsertChannel(prisma, channel.id, channel.name)
       fetchedThreadTs = await saveMessages(prisma, dbChannelId, messages, channel.id)
       totalNew += messages.length
