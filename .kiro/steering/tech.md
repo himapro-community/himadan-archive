@@ -29,6 +29,9 @@ The differential crawl has two phases per channel:
 
 **Remaining edge case**: A message saved more than 30 days ago with `replyCount = 0` that receives its very first reply will not be detected. This is accepted as a rare scenario.
 
+### Channel Membership Requirement
+Slack returns `not_in_channel` on `conversations.history` / `conversations.replies` when the bot is not a member of the target channel, even with `channels:history` scope. To avoid this, the crawler must call `conversations.join` on every target channel before reading history or replies. The call is idempotent — `already_in_channel` is treated as success. This applies to `run-diff.ts`, `run-all.ts`, and `run.ts`. Required Slack scopes: `channels:join`, `channels:read`, `channels:history`.
+
 ### Rate Limiting
 Slack Tier 3 API: 50 req/min → 1.2s sleep between requests (`FETCH_DELAY_MS`).
 
