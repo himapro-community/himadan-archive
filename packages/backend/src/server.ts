@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { config } from 'dotenv'
-import Fastify from 'fastify'
+import Fastify, { type FastifyError } from 'fastify'
 import { jwtPlugin } from './plugins/jwt.js'
 import { corsPlugin } from './plugins/cors.js'
 import { prismaPlugin } from './plugins/prisma.js'
@@ -11,6 +11,7 @@ import { messageRoutes } from './routes/messages.js'
 import { searchRoutes } from './routes/search.js'
 import { heatmapRoutes } from './routes/heatmap.js'
 import { userRoutes } from './routes/users.js'
+import { notifyError } from './lib/notify.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 config({ path: path.resolve(__dirname, '../.env') })
@@ -39,11 +40,22 @@ await server.register(userRoutes, { prefix: '/api/users' })
 
 server.get('/api/health', async () => ({ status: 'ok' }))
 
+server.setErrorHandler((err: FastifyError, request, reply) => {
+  request.log.error(err)
+  const status = err.statusCode ?? 500
+  if (status >= 500) {
+    // fire-and-forget: 通知投稿のレイテンシでエラーレスポンスを遅らせない
+    void notifyError(`${request.method} ${request.url}`, err)
+  }
+  reply.status(status).send({ error: err.message })
+})
+
 const PORT = Number(process.env.PORT ?? 3001)
 
 try {
   await server.listen({ port: PORT, host: process.env.NODE_ENV === 'production' ? '0.0.0.0' : '::' })
 } catch (err) {
   server.log.error(err)
+  await notifyError('server/listen', err)
   process.exit(1)
 }

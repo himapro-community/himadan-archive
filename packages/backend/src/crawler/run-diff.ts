@@ -5,6 +5,7 @@ import { PrismaClient } from '@prisma/client'
 import { getSlackClient, sleep } from './slack-client.js'
 import { fetchChannelMessages } from './fetch-channel.js'
 import { upsertChannel, saveMessages, syncRecentThreadReplies } from './save-to-db.js'
+import { notifyError } from '../lib/notify.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 config({ path: path.resolve(__dirname, '../../.env') })
@@ -88,6 +89,7 @@ try {
   console.log(`[diff] 完了: 新着 ${totalNew} 件`)
 } catch (err) {
   console.error('エラー:', err)
+  await notifyError('crawler/run-diff', err)
   process.exit(1)
 } finally {
   await prisma.$disconnect()
