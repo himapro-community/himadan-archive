@@ -74,6 +74,24 @@ The diff crawler **runs automatically every day at midnight (JST) via GitHub Act
 2. Select **Daily Crawler** / **Daily Crawler** を選択
 3. Click **Run workflow** / **Run workflow** をクリック
 
+## Error Notifications / エラー通知
+
+When the diff crawler fails or the Fastify backend returns a 5xx response, an error message is posted to a Slack channel via the existing crawler bot.
+差分クローラーが失敗したとき、または Fastify バックエンドが 5xx を返したときに、既存のクローラー Bot 経由で Slack チャンネルへエラーメッセージを投稿する。
+
+- Implementation / 実装: `packages/backend/src/lib/notify.ts`
+- Default channel / 既定の送信先: `C0B36B3A6D7` (override with `SLACK_ALERT_CHANNEL` / `SLACK_ALERT_CHANNEL` で上書き可能)
+- Required Slack scope / 必要な Slack スコープ: `chat:write` (the bot must be invited to the destination channel / Bot を送信先チャンネルに招待しておくこと)
+- Disable / 無効化: unset `SLACK_BOT_TOKEN` and the notifier becomes a no-op / `SLACK_BOT_TOKEN` を外せば通知は no-op になる
+
+Send a test notification / テスト通知を送る：
+
+```bash
+cd packages/backend
+npx tsc
+node dist/lib/notify-test.js
+```
+
 ## Deploy / デプロイ
 
 ### Backend (Fly.io) / バックエンド（Fly.io）
@@ -112,6 +130,7 @@ vercel --prod
 | `JWT_SECRET` | JWT signing secret (random, 32+ chars) |
 | `FRONTEND_URL` | Frontend URL (for CORS) |
 | `API_URL` | Backend public URL |
+| `SLACK_ALERT_CHANNEL` | (optional) Error notification channel ID, defaults to `C0B36B3A6D7` |
 
 | キー | 説明 |
 |------|------|
@@ -123,6 +142,7 @@ vercel --prod
 | `JWT_SECRET` | JWTの署名シークレット（ランダム32文字以上） |
 | `FRONTEND_URL` | フロントエンドURL（CORS用） |
 | `API_URL` | バックエンドの公開URL |
+| `SLACK_ALERT_CHANNEL` | （任意）エラー通知の送信先チャンネルID。未設定時は `C0B36B3A6D7` |
 
 #### GitHub Secrets (Repository Settings → Secrets and variables → Actions) / GitHub Secrets
 
