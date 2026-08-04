@@ -125,6 +125,13 @@ cd packages/frontend
 vercel --prod
 ```
 
+> **Why there is no CI workflow for the frontend / フロントに CI がない理由（2026-08-04 調査で確定）**
+> A `deploy-frontend.yml` existed but was **deleted**: it ran exactly once (2026-04-25), failed, and never ran again — the `VERCEL_TOKEN` secret it required **was never created**, so it could not have succeeded even once. The site stayed current because that commit was deployed by hand with the command above. Leaving a permanently-failing workflow in place produced a false alarm in the watchdog every day, which is worse than having no workflow.
+> `deploy-frontend.yml` は**削除済み**。生涯で1回だけ実行(2026-04-25)して失敗し、以降一度も走っていない。必要な `VERCEL_TOKEN` シークレットは**そもそも作られたことがない**ため、構造的に一度も成功し得なかった（当時のコードが本番に載っているのは上の手動コマンドでデプロイされたから）。永久に失敗し続ける workflow は番人に毎日 偽の警報を出させるだけなので撤去した。
+>
+> To restore automation / 自動化を戻したい場合: connect the Vercel project to this repo (Vercel dashboard → Project → Settings → Git). That is preferable to a token-based workflow — no secret to rotate, and it consumes no GitHub Actions minutes.
+> Vercel ダッシュボード → Project → Settings → Git でこのリポジトリを接続するのが最善（トークン管理が不要で、GitHub Actions の分も消費しない）。
+
 ### Environment Variables / 環境変数
 
 #### Fly.io Secrets (`fly secrets set KEY=VALUE --app himadan-archive`) / Fly.io シークレット
