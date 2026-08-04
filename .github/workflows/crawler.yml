@@ -33,37 +33,48 @@ jobs:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
       # Slack側のエラー通知 (notify.ts) は SLACK_BOT_TOKEN が死ぬと一緒に沈黙する
-      # (2026-05〜07 に実際に3ヶ月無音で止まった)。GitHub Issue は Slack 非依存なので
-      # ここで可視化する。honnemaru の番人 (watchdog) が open Issue と failing run を
-      # 毎朝拾って Webhook 経路 (Bot Token 非依存) で Slack に届ける = 経路が分離される
+      # (2026-05-14〜08-04 に実際に2.7ヶ月無音で止まった)。GitHub Issue は Slack 非依存なので
+      # ここで可視化する。honnemaru の番人 (watchdog) は毎朝この workflow の直近 run が
+      # failure かを見て Webhook 経路 (Bot Token 非依存) で Slack に届ける = 経路が分離される。
+      # ※番人が Slack に流すのは run の失敗であって Issue ではない (Issue はリポジトリ側の可視化)
       - name: Create issue on failure
         if: failure()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const PREFIX = '[crawler-failure] Daily Crawler が失敗';
+            // 重複判定はラベルではなくタイトル前方一致で行う。ラベルが未作成のリポでも
+            // 確実に効かせるため (エスカレーション自体がラベルの存在に依存すると本末転倒)
             const { data: issues } = await github.rest.issues.listForRepo({
               owner: context.repo.owner, repo: context.repo.repo,
-              state: 'open', labels: 'crawler-failure',
+              state: 'open', per_page: 100,
             });
-            if (issues.length > 0) {
+            if (issues.some(i => i.title.startsWith(PREFIX))) {
               core.info('既存の crawler-failure Issue が open のため新規作成しません');
               return;
             }
-            await github.rest.issues.create({
+            const payload = {
               owner: context.repo.owner, repo: context.repo.repo,
-              title: `[crawler-failure] Daily Crawler が失敗 (${new Date().toISOString().slice(0,10)})`,
+              title: `${PREFIX} (${new Date().toISOString().slice(0,10)})`,
               body: [
                 '## Daily Crawler が失敗しました',
                 '',
                 `**workflow run**: ${runUrl}`,
                 '',
                 '⚠️ 放置すると Slack 無料プランの90日で古いメッセージから順に回収不能になります。',
+                '2026-05〜08 の事故では残り9日で間に合いました。',
                 '',
                 '### 想定原因 (2026-08 の実績順)',
                 '- `SLACK_BOT_TOKEN` (Fly側 secret) の失効 → `invalid_auth`。Slack App を Reinstall して `fly secrets set SLACK_BOT_TOKEN=... -a himadan-archive`',
                 '- `FLY_API_TOKEN` (GitHub側 secret) の失効/空 → `fly tokens create deploy -a himadan-archive -x 87600h` で再発行',
                 '- Fly マシン停止 → `fly status -a himadan-archive`',
               ].join('\n'),
-              labels: ['crawler-failure'],
-            });
+            };
+            // ラベルは付けられれば付ける。無いリポで create ごと落とさないよう分離する
+            try {
+              await github.rest.issues.create({ ...payload, labels: ['crawler-failure'] });
+            } catch (e) {
+              core.warning(`ラベル付きの作成に失敗したためラベル無しで作成します: ${e.message}`);
+              await github.rest.issues.create(payload);
+            }

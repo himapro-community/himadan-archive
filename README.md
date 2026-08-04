@@ -94,12 +94,22 @@ node dist/lib/notify-test.js
 
 ### Slack-independent fallback / Slack非依存の保険（2026-08-04〜）
 
-The Slack notifier above goes silent together with a dead `SLACK_BOT_TOKEN` — this actually happened in 2026-05〜07 (token revoked → crawler failed daily for ~3 months → GitHub auto-disabled the workflow after 60 days of repo inactivity, all without a single notification).
-上記のSlack通知は `SLACK_BOT_TOKEN` が死ぬと**一緒に沈黙する**（2026-05〜07 に実際に発生: トークン失効→毎日失敗→60日ルールで自動停止まで無通知）。
+The Slack notifier above goes silent together with a dead `SLACK_BOT_TOKEN`, so failures are also surfaced through a path that does not depend on Slack at all.
+上記のSlack通知は `SLACK_BOT_TOKEN` が死ぬと**一緒に沈黙する**ため、Slack に依存しない経路でも失敗を可視化する。
 
-- `crawler.yml` が失敗時に GitHub Issue（label: `crawler-failure`）を自動作成（重複防止つき）
-- honnemaru リポの番人（watchdog）が毎朝 open Issue と failing run を拾い、**Webhook 経路**（Bot Token 非依存）で Slack に通知 = 通知経路が分離される
-- `FLY_API_TOKEN` が空の場合は fail-fast で即エラー表示（2026-07 の原因特定を遅らせた generic エラー対策）
+- `crawler.yml` が失敗時に GitHub Issue（label: `crawler-failure`）を自動作成（重複防止つき）＝リポジトリを見れば必ず気づける
+- honnemaru リポの番人（watchdog）が毎朝 **このリポの workflow の直近 run が failure かどうか**を見て、**Webhook 経路**（Bot Token 非依存）で Slack に通知する＝通知経路が分離される。※番人が Slack に流すのは **run の失敗**であって Issue ではない（Issue は Mission Control の「残タスク」欄に表示されるだけ）
+- `FLY_API_TOKEN` が空の場合は fail-fast で即エラー表示（原因特定を遅らせた generic エラー対策）
+
+### Incident log / 障害記録（2026-08-04 の全面調査で判明した事実）
+
+The daily crawler **never once succeeded on a schedule**: 70 runs from 2026-04-26 to 2026-08-04, of which exactly **one** succeeded — the last. Every earlier run died in under a second because the `FLY_API_TOKEN` secret was empty (verified in the 2026-05-13 run log). Ingestion up to 2026-05-14 came from **manual runs**, not from the workflow, so the archive looked healthy while its automation had never worked at all.
+日次クローラーは **スケジュール実行で一度も成功していなかった**: 2026-04-26〜2026-08-04 の 70 runs 中、成功は**最後の1回だけ**。それ以前は `FLY_API_TOKEN` シークレットが空で1秒未満で即死していた（2026-05-13 の run ログで確認）。2026-05-14 までの取り込みは**手動実行**によるもので、**自動化は最初から一度も動いていなかった**のにアーカイブは健全に見えていた。
+
+- **停止した瞬間**: 2026-05-14 14:29 (最後に取り込まれた投稿)。同日 honnemaru 側で Slack 通知を Webhook 方式へ移行し**旧 Bot Token を廃止した巻き添え**で、手動実行も `invalid_auth` で失敗するようになった
+- **空白**: 2026-05-14 → 2026-08-03 の約2.7ヶ月・**1,131件**。2026-08-03/04 のバックフィルで全件回収（つなぎ目 5/14 14:29→17:36 が連続していることで欠損ゼロを確認）
+- **危なかった点**: Slack 無料プランは90日より古い履歴を API から隠す。回収可能な限界が約 2026-05-05、空白の開始が 05-14 ＝ **残り9日**だった
+- **教訓**: 「失敗し続けている」ことに誰も気づけなかったのが本質。**成功したことが一度もない自動化は、動いているように見えても存在しないのと同じ**。番人（honnemaru の watchdog）はこの種の沈黙故障を検出するために作られている
 
 ## Deploy / デプロイ
 
