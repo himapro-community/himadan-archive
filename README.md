@@ -92,6 +92,15 @@ npx tsc
 node dist/lib/notify-test.js
 ```
 
+### Slack-independent fallback / Slack非依存の保険（2026-08-04〜）
+
+The Slack notifier above goes silent together with a dead `SLACK_BOT_TOKEN` — this actually happened in 2026-05〜07 (token revoked → crawler failed daily for ~3 months → GitHub auto-disabled the workflow after 60 days of repo inactivity, all without a single notification).
+上記のSlack通知は `SLACK_BOT_TOKEN` が死ぬと**一緒に沈黙する**（2026-05〜07 に実際に発生: トークン失効→毎日失敗→60日ルールで自動停止まで無通知）。
+
+- `crawler.yml` が失敗時に GitHub Issue（label: `crawler-failure`）を自動作成（重複防止つき）
+- honnemaru リポの番人（watchdog）が毎朝 open Issue と failing run を拾い、**Webhook 経路**（Bot Token 非依存）で Slack に通知 = 通知経路が分離される
+- `FLY_API_TOKEN` が空の場合は fail-fast で即エラー表示（2026-07 の原因特定を遅らせた generic エラー対策）
+
 ## Deploy / デプロイ
 
 ### Backend (Fly.io) / バックエンド（Fly.io）

@@ -5,13 +5,65 @@ on:
     - cron: '0 15 * * *' # JST 0:00（UTC 15:00）
   workflow_dispatch: # 手動実行も可能
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   crawl:
     runs-on: ubuntu-latest
+    timeout-minutes: 15 # ハング時に360分(既定)課金される事故の防止
     steps:
+      # 2026-07 に FLY_API_TOKEN が空のまま3日毎日失敗→60日ルールで自動停止した。
+      # 空トークンは flyctl の generic エラーに化けて原因特定に時間がかかるため先に落とす
+      - name: Fail fast if FLY_API_TOKEN secret is missing
+        env:
+          FLY_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          if [ -z "$FLY_TOKEN" ]; then
+            echo "::error::FLY_API_TOKEN secret が未設定/空です。fly tokens create deploy -a himadan-archive -x 87600h で再発行して Settings > Secrets に登録してください"
+            exit 1
+          fi
+
       - uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Run diff crawler on Fly.io
         run: flyctl ssh console --app himadan-archive -C "node dist/crawler/run-diff.js"
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      # Slack側のエラー通知 (notify.ts) は SLACK_BOT_TOKEN が死ぬと一緒に沈黙する
+      # (2026-05〜07 に実際に3ヶ月無音で止まった)。GitHub Issue は Slack 非依存なので
+      # ここで可視化する。honnemaru の番人 (watchdog) が open Issue と failing run を
+      # 毎朝拾って Webhook 経路 (Bot Token 非依存) で Slack に届ける = 経路が分離される
+      - name: Create issue on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: 'open', labels: 'crawler-failure',
+            });
+            if (issues.length > 0) {
+              core.info('既存の crawler-failure Issue が open のため新規作成しません');
+              return;
+            }
+            await github.rest.issues.create({
+              owner: context.repo.owner, repo: context.repo.repo,
+              title: `[crawler-failure] Daily Crawler が失敗 (${new Date().toISOString().slice(0,10)})`,
+              body: [
+                '## Daily Crawler が失敗しました',
+                '',
+                `**workflow run**: ${runUrl}`,
+                '',
+                '⚠️ 放置すると Slack 無料プランの90日で古いメッセージから順に回収不能になります。',
+                '',
+                '### 想定原因 (2026-08 の実績順)',
+                '- `SLACK_BOT_TOKEN` (Fly側 secret) の失効 → `invalid_auth`。Slack App を Reinstall して `fly secrets set SLACK_BOT_TOKEN=... -a himadan-archive`',
+                '- `FLY_API_TOKEN` (GitHub側 secret) の失効/空 → `fly tokens create deploy -a himadan-archive -x 87600h` で再発行',
+                '- Fly マシン停止 → `fly status -a himadan-archive`',
+              ].join('\n'),
+              labels: ['crawler-failure'],
+            });
