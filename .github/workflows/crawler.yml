@@ -42,13 +42,13 @@ jobs:
         uses: actions/github-script@v9
         with:
           script: |
-            // ⚠️ このリポジトリは Issues 機能が無効なため、API は
+            // ⚠️ Issues が無効なリポジトリでは API が
             // "Issues has been disabled in this repository" で必ず落ちる。
-            // Issue はあくまで「リポジトリ側の可視化」であって主経路ではない
-            // (失敗の通知は番人が run の失敗を見て Slack に流す) ので、
-            // ここで落として Unhandled error を出す価値は無い。無効なら黙って抜ける。
             // 2026-08-19〜21 の失敗ログはこの Unhandled error で終わっており、
             // 本当の原因 (thread_not_found) が読み取りにくくなっていた。
+            // → 2026-08-22 に本リポジトリの Issues は有効化済み。この分岐は
+            //   「また無効に戻された時に、エスカレーション自体が二次障害を
+            //   起こさない」ための保険として残す (主経路は番人 → Slack)。
             const { data: repoInfo } = await github.rest.repos.get({
               owner: context.repo.owner, repo: context.repo.repo,
             });
