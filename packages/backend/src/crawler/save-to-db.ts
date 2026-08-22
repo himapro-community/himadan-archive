@@ -159,8 +159,26 @@ export async function syncRecentThreadReplies(
 
   console.log(`  [thread-sync] ${targets.length} 件のスレッドを再同期中...`)
 
+  let skipped = 0
+
   for (const parent of targets) {
-    const replies = await fetchThreadReplies(slackChannelId, parent.slackTs)
+    let replies
+    try {
+      replies = await fetchThreadReplies(slackChannelId, parent.slackTs)
+    } catch (err) {
+      // 親メッセージが Slack 側で削除されると thread_not_found が返る。
+      // これは異常ではなく通常起こること。ここで throw していたため、
+      // **削除されたスレッド1件でクロール全体が落ちていた**
+      // (2026-08-19〜21 に3日連続失敗し、その間の取り込みがゼロになった)。
+      // 想定内のものだけ握りつぶし、それ以外は従来どおり投げて気づけるようにする。
+      const code = (err as { data?: { error?: string } })?.data?.error
+      if (code === 'thread_not_found' || code === 'message_not_found') {
+        skipped++
+        console.warn(`  [thread-sync] skip ${parent.slackTs}: ${code} (元メッセージが削除済み)`)
+        continue
+      }
+      throw err
+    }
     for (const reply of replies) {
       const replyUserId = reply.user ? await upsertUser(prisma, reply.user) : null
       await upsertMessage(prisma, channelId, reply, replyUserId)
@@ -173,5 +191,8 @@ export async function syncRecentThreadReplies(
     }
   }
 
-  console.log(`  [thread-sync] 完了: ${targets.length} スレッド再同期`)
+  console.log(
+    `  [thread-sync] 完了: ${targets.length - skipped} スレッド再同期` +
+      (skipped > 0 ? ` (${skipped} 件は削除済みのためスキップ)` : '')
+  )
 }

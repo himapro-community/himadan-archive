@@ -42,6 +42,21 @@ jobs:
         uses: actions/github-script@v9
         with:
           script: |
+            // ⚠️ このリポジトリは Issues 機能が無効なため、API は
+            // "Issues has been disabled in this repository" で必ず落ちる。
+            // Issue はあくまで「リポジトリ側の可視化」であって主経路ではない
+            // (失敗の通知は番人が run の失敗を見て Slack に流す) ので、
+            // ここで落として Unhandled error を出す価値は無い。無効なら黙って抜ける。
+            // 2026-08-19〜21 の失敗ログはこの Unhandled error で終わっており、
+            // 本当の原因 (thread_not_found) が読み取りにくくなっていた。
+            const { data: repoInfo } = await github.rest.repos.get({
+              owner: context.repo.owner, repo: context.repo.repo,
+            });
+            if (!repoInfo.has_issues) {
+              core.warning('このリポジトリは Issues が無効なため Issue 作成をスキップします（通知は番人経由）');
+              return;
+            }
+
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             const PREFIX = '[crawler-failure] Daily Crawler が失敗';
             // 重複判定はラベルではなくタイトル前方一致で行う。ラベルが未作成のリポでも
