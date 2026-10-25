@@ -1,5 +1,8 @@
-FROM node:20-alpine AS base
-RUN npm install -g pnpm
+FROM node:22-alpine AS base
+# pnpm は版を固定する。無指定だと最新が入り、pnpm 11 は Prisma の準備スクリプトを止めて
+# ERR_PNPM_IGNORED_BUILDS で組み立てごと落とす（2026-10-24 に手元の組み立てで発覚）。
+# lockfileVersion 9.0 は pnpm 10 で作ったもの
+RUN npm install -g pnpm@10
 
 # deps
 FROM base AS deps
@@ -20,8 +23,8 @@ RUN pnpm exec prisma generate
 RUN pnpm build
 
 # runner
-FROM node:20-alpine AS runner
-RUN npm install -g pnpm
+FROM node:22-alpine AS runner
+RUN npm install -g pnpm@10
 WORKDIR /app
 ENV NODE_ENV=production
 
